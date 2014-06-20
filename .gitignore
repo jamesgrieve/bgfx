@@ -1,6 +1,6 @@
-.git
-.build
-.debug
-.svn
+.build/
+.debug/
+.svn/
+build/
 tags
 .DS_Store
