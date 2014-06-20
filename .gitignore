@@ -1,5 +1,6 @@
 .build/
 .debug/
 .svn/
+build/
 tags
 .DS_Store
