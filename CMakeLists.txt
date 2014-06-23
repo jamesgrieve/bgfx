@@ -137,4 +137,31 @@ target_link_libraries( oit                  bgfx ${EXTRA_LIBS} )
 target_link_libraries( nanovg               bgfx ${EXTRA_LIBS} )
 target_link_libraries( deferred             bgfx ${EXTRA_LIBS} )
 
+set( SHADER_FILES "" )
+file( GLOB_RECURSE F_SHADER_FILES ${BGFX_EXAMPLES_DIR}/fs*.sc )
+file( GLOB_RECURSE V_SHADER_FILES ${BGFX_EXAMPLES_DIR}/vs*.sc )
+set( SHADER_BIN_FILES "" )
+set( SHADERC_PLAT "osx" )
+set( SHADERC ${CMAKE_CURRENT_SOURCE_DIR}/tools/bin/darwin/shaderc )
+
+foreach( SHADER_FILE ${V_SHADER_FILES} )
+  add_custom_command(
+    OUTPUT "${SHADER_FILE}.bin"
+    DEPENDS ${SHADER_FILE}
+    COMMAND ${SHADERC} -f "${SHADER_FILE}" -o "${SHADER_FILE}.bin" -i "${BGFX_SOURCE_DIR}" --platform ${SHADERC_PLAT} --type v
+    COMMENT "Compiling ${SHADER_FILE}..." )
+  list( APPEND SHADER_BIN_FILES "${SHADER_FILE}.bin" )
+endforeach()
+
+foreach( SHADER_FILE ${F_SHADER_FILES} )
+  add_custom_command(
+    OUTPUT "${SHADER_FILE}.bin"
+    DEPENDS ${SHADER_FILE}
+    COMMAND ${SHADERC} -f "${SHADER_FILE}" -o "${SHADER_FILE}.bin" -i "${BGFX_SOURCE_DIR}" --platform ${SHADERC_PLAT} --type f
+    COMMENT "Compiling ${SHADER_FILE}..." )
+  list( APPEND SHADER_BIN_FILES "${SHADER_FILE}.bin" )
+endforeach()
+
+add_custom_target( SHADER_COMPILE ALL DEPENDS ${SHADER_BIN_FILES} )
+
 add_subdirectory(tools)
