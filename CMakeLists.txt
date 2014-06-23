@@ -13,6 +13,8 @@ set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY lib )
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../bx/include ${BGFX_INCLUDE_DIR} ${BGFX_EXAMPLES_DIR}/common ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty )
 
+add_subdirectory(tools)
+
 set ( BGFX_SRC ${BGFX_SOURCE_DIR}/bgfx.cpp 
                ${BGFX_SOURCE_DIR}/vertexdecl.cpp 
                ${BGFX_SOURCE_DIR}/image.cpp 
@@ -91,77 +93,74 @@ target_link_libraries( common )
 
 set( EXTRA_LIBS ${EXTRA_LIBS} common )
 
-add_executable( helloworld          ${BGFX_EXAMPLES_DIR}/00-helloworld/helloworld.cpp )
-add_executable( cubes               ${BGFX_EXAMPLES_DIR}/01-cubes/cubes.cpp )
-add_executable( metaballs           ${BGFX_EXAMPLES_DIR}/02-metaballs/metaballs.cpp )
-add_executable( raymarch            ${BGFX_EXAMPLES_DIR}/03-raymarch/raymarch.cpp )
-add_executable( mesh                ${BGFX_EXAMPLES_DIR}/04-mesh/mesh.cpp )
-add_executable( instancing          ${BGFX_EXAMPLES_DIR}/05-instancing/instancing.cpp )
-add_executable( bump                ${BGFX_EXAMPLES_DIR}/06-bump/bump.cpp )
-add_executable( callback            ${BGFX_EXAMPLES_DIR}/07-callback/callback.cpp )
-add_executable( update              ${BGFX_EXAMPLES_DIR}/08-update/update.cpp )
-add_executable( hdr                 ${BGFX_EXAMPLES_DIR}/09-hdr/hdr.cpp )
-add_executable( font                ${BGFX_EXAMPLES_DIR}/10-font/font.cpp )
-add_executable( fontsdf             ${BGFX_EXAMPLES_DIR}/11-fontsdf/fontsdf.cpp )
-add_executable( lod                 ${BGFX_EXAMPLES_DIR}/12-lod/lod.cpp )
-add_executable( stencil             ${BGFX_EXAMPLES_DIR}/13-stencil/stencil.cpp )
-add_executable( shadowvolumes       ${BGFX_EXAMPLES_DIR}/14-shadowvolumes/shadowvolumes.cpp )
-add_executable( shadowmaps-simple   ${BGFX_EXAMPLES_DIR}/15-shadowmaps-simple/shadowmaps_simple.cpp )
-add_executable( shadowmaps          ${BGFX_EXAMPLES_DIR}/16-shadowmaps/shadowmaps.cpp )
-add_executable( drawstress          ${BGFX_EXAMPLES_DIR}/17-drawstress/drawstress.cpp )
-add_executable( ibl                 ${BGFX_EXAMPLES_DIR}/18-ibl/ibl.cpp )
-add_executable( oit                 ${BGFX_EXAMPLES_DIR}/19-oit/oit.cpp )
-add_executable( nanovg              ${BGFX_EXAMPLES_DIR}/20-nanovg/nanovg.cpp )
-add_executable( deferred            ${BGFX_EXAMPLES_DIR}/21-deferred/deferred.cpp )
+set( EXAMPLES 
+        00-helloworld
+        01-cubes
+        02-metaballs
+        03-raymarch
+        04-mesh
+        05-instancing
+        06-bump
+        07-callback
+        08-update
+        09-hdr
+        10-font
+        11-fontsdf
+        12-lod
+        13-stencil
+        14-shadowvolumes
+        15-shadowmaps-simple
+        16-shadowmaps
+        17-drawstress
+        18-ibl
+        19-oit
+        20-nanovg
+        21-deferred  )
 
-target_link_libraries( helloworld           bgfx ${EXTRA_LIBS} )
-target_link_libraries( cubes                bgfx ${EXTRA_LIBS} )
-target_link_libraries( metaballs            bgfx ${EXTRA_LIBS} )
-target_link_libraries( raymarch             bgfx ${EXTRA_LIBS} )
-target_link_libraries( mesh                 bgfx ${EXTRA_LIBS} )
-target_link_libraries( instancing           bgfx ${EXTRA_LIBS} )
-target_link_libraries( bump                 bgfx ${EXTRA_LIBS} )
-target_link_libraries( callback             bgfx ${EXTRA_LIBS} )
-target_link_libraries( update               bgfx ${EXTRA_LIBS} )
-target_link_libraries( hdr                  bgfx ${EXTRA_LIBS} )
-target_link_libraries( font                 bgfx ${EXTRA_LIBS} )
-target_link_libraries( fontsdf              bgfx ${EXTRA_LIBS} )
-target_link_libraries( lod                  bgfx ${EXTRA_LIBS} )
-target_link_libraries( stencil              bgfx ${EXTRA_LIBS} )
-target_link_libraries( shadowvolumes        bgfx ${EXTRA_LIBS} )
-target_link_libraries( shadowmaps-simple    bgfx ${EXTRA_LIBS} )
-target_link_libraries( shadowmaps           bgfx ${EXTRA_LIBS} )
-target_link_libraries( drawstress           bgfx ${EXTRA_LIBS} )
-target_link_libraries( ibl                  bgfx ${EXTRA_LIBS} )
-target_link_libraries( oit                  bgfx ${EXTRA_LIBS} )
-target_link_libraries( nanovg               bgfx ${EXTRA_LIBS} )
-target_link_libraries( deferred             bgfx ${EXTRA_LIBS} )
+foreach( EXAMPLE ${EXAMPLES} )
+  file( GLOB EXAMPLE_FILES 
+        ${BGFX_EXAMPLES_DIR}/${EXAMPLE}/*.cpp 
+        ${BGFX_EXAMPLES_DIR}/${EXAMPLE}/*.h    )
+  add_executable( ${EXAMPLE} ${EXAMPLE_FILES} )
+  set_target_properties( ${EXAMPLE} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./bin/examples/${EXAMPLE} )
+  target_link_libraries( ${EXAMPLE} bgfx ${EXTRA_LIBS} )
+endforeach()
 
 set( SHADER_FILES "" )
 file( GLOB_RECURSE F_SHADER_FILES ${BGFX_EXAMPLES_DIR}/fs*.sc )
 file( GLOB_RECURSE V_SHADER_FILES ${BGFX_EXAMPLES_DIR}/vs*.sc )
+list( APPEND SHADER_FILES ${F_SHADER_FILES} ${V_SHADER_FILES} )
+
 set( SHADER_BIN_FILES "" )
 set( SHADERC_PLAT "osx" )
 set( SHADERC ${CMAKE_CURRENT_SOURCE_DIR}/tools/bin/darwin/shaderc )
 
-foreach( SHADER_FILE ${V_SHADER_FILES} )
+foreach( SHADER_FILE ${SHADER_FILES} )
+
+  string( REGEX REPLACE ${BGFX_EXAMPLES_DIR}/ "" EXAMPLE_NAME ${SHADER_FILE} )
+  string( REGEX REPLACE "common/" "" EXAMPLE_NAME ${EXAMPLE_NAME} )
+
+  string( REGEX MATCH   "/.*"    SHADER_FILE_NAME ${EXAMPLE_NAME} )
+  string( REGEX REPLACE "^/" ""  SHADER_FILE_NAME ${SHADER_FILE_NAME} )
+
+  string( REGEX REPLACE "/.*" "" EXAMPLE_NAME  ${EXAMPLE_NAME} )
+
+  string( REGEX MATCH "^[fv]" SHADER_TYPE ${SHADER_FILE_NAME} )
+
+  set( SHADER_OUTPUT_DIR  "${PROJECT_BINARY_DIR}/bin/examples/${EXAMPLE_NAME}" )
+  set( SHADER_OUTPUT_FILE "bin/examples/${EXAMPLE_NAME}/${SHADER_FILE_NAME}.bin" )
+
+  # ensure directory is created for shaderc output
+  file( MAKE_DIRECTORY ${SHADER_OUTPUT_DIR} )
+
   add_custom_command(
-    OUTPUT "${SHADER_FILE}.bin"
+    OUTPUT  ${SHADER_OUTPUT_FILE}
     DEPENDS ${SHADER_FILE}
-    COMMAND ${SHADERC} -f "${SHADER_FILE}" -o "${SHADER_FILE}.bin" -i "${BGFX_SOURCE_DIR}" --platform ${SHADERC_PLAT} --type v
+    COMMAND ${SHADERC} -f "${SHADER_FILE}" -o ${SHADER_OUTPUT_FILE} -i "${BGFX_SOURCE_DIR}" --platform ${SHADERC_PLAT} --type ${SHADER_TYPE}
     COMMENT "Compiling ${SHADER_FILE}..." )
-  list( APPEND SHADER_BIN_FILES "${SHADER_FILE}.bin" )
+  list( APPEND SHADER_BIN_FILES ${SHADER_OUTPUT_FILE} )
+
 endforeach()
 
-foreach( SHADER_FILE ${F_SHADER_FILES} )
-  add_custom_command(
-    OUTPUT "${SHADER_FILE}.bin"
-    DEPENDS ${SHADER_FILE}
-    COMMAND ${SHADERC} -f "${SHADER_FILE}" -o "${SHADER_FILE}.bin" -i "${BGFX_SOURCE_DIR}" --platform ${SHADERC_PLAT} --type f
-    COMMENT "Compiling ${SHADER_FILE}..." )
-  list( APPEND SHADER_BIN_FILES "${SHADER_FILE}.bin" )
-endforeach()
+add_custom_target( SHADER_COMPILE ALL DEPENDS ${SHADER_BIN_FILES} shaderc )
 
-add_custom_target( SHADER_COMPILE ALL DEPENDS ${SHADER_BIN_FILES} )
-
-add_subdirectory(tools)
