@@ -7,6 +7,10 @@ set (BGFX_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set (BGFX_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set (BGFX_EXAMPLES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples)
 
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY bin )
+set( CMAKE_LIBRARY_OUTPUT_DIRECTORY lib )
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY lib )
+
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../bx/include ${BGFX_INCLUDE_DIR} ${BGFX_EXAMPLES_DIR}/common ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty )
 
 set ( BGFX_SRC ${BGFX_SOURCE_DIR}/bgfx.cpp 
@@ -133,3 +137,4 @@ target_link_libraries( oit                  bgfx ${EXTRA_LIBS} )
 target_link_libraries( nanovg               bgfx ${EXTRA_LIBS} )
 target_link_libraries( deferred             bgfx ${EXTRA_LIBS} )
 
+add_subdirectory(tools)
