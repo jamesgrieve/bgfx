@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
+project(bgfx)
+
 # Debugging support
 # add_definitions(-DBGFX_CONFIG_DEBUG=1)
 
@@ -151,7 +153,7 @@ foreach( SHADER_FILE ${SHADER_FILES} )
 
   string( REGEX MATCH "^[fv]" SHADER_TYPE ${SHADER_FILE_NAME} )                 # strip initial char
 
-  message(${SHADER_NAME})
+#  message(${SHADER_NAME})
 
   set( SHADER_OUTPUT_DIR  "${PROJECT_BINARY_DIR}/bin/examples/${EXAMPLE_NAME}/shaders/glsl" )
   set( SHADER_OUTPUT_FILE ${SHADER_OUTPUT_DIR}/${SHADER_NAME}.bin )
