@@ -118,12 +118,14 @@ set( EXAMPLES
         21-deferred  )
 
 foreach( EXAMPLE ${EXAMPLES} )
+
   file( GLOB EXAMPLE_FILES 
         ${BGFX_EXAMPLES_DIR}/${EXAMPLE}/*.cpp 
         ${BGFX_EXAMPLES_DIR}/${EXAMPLE}/*.h    )
   add_executable( ${EXAMPLE} ${EXAMPLE_FILES} )
   set_target_properties( ${EXAMPLE} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./bin/examples/${EXAMPLE} )
   target_link_libraries( ${EXAMPLE} bgfx ${EXTRA_LIBS} )
+
 endforeach()
 
 set( SHADER_FILES "" )
@@ -137,18 +139,22 @@ set( SHADERC ${CMAKE_CURRENT_SOURCE_DIR}/tools/bin/darwin/shaderc )
 
 foreach( SHADER_FILE ${SHADER_FILES} )
 
-  string( REGEX REPLACE ${BGFX_EXAMPLES_DIR}/ "" EXAMPLE_NAME ${SHADER_FILE} )
-  string( REGEX REPLACE "common/" "" EXAMPLE_NAME ${EXAMPLE_NAME} )
+  string( REGEX REPLACE ${BGFX_EXAMPLES_DIR}/ "" EXAMPLE_NAME ${SHADER_FILE} )  # strip example dir
+  string( REGEX REPLACE "common/" "" EXAMPLE_NAME ${EXAMPLE_NAME} )             # strip common dir if present
 
-  string( REGEX MATCH   "/.*"    SHADER_FILE_NAME ${EXAMPLE_NAME} )
-  string( REGEX REPLACE "^/" ""  SHADER_FILE_NAME ${SHADER_FILE_NAME} )
+  string( REGEX MATCH   "/.*"    SHADER_FILE_NAME ${EXAMPLE_NAME} )             # match after the last /
+  string( REGEX REPLACE "^/" ""  SHADER_FILE_NAME ${SHADER_FILE_NAME} )         # strip leading /
 
-  string( REGEX REPLACE "/.*" "" EXAMPLE_NAME  ${EXAMPLE_NAME} )
+  string( REGEX REPLACE "\\..*" "" SHADER_NAME ${SHADER_FILE_NAME} )             # strip file extension
 
-  string( REGEX MATCH "^[fv]" SHADER_TYPE ${SHADER_FILE_NAME} )
+  string( REGEX REPLACE "/.*" "" EXAMPLE_NAME  ${EXAMPLE_NAME} )                # strip everything after last /
 
-  set( SHADER_OUTPUT_DIR  "${PROJECT_BINARY_DIR}/bin/examples/${EXAMPLE_NAME}" )
-  set( SHADER_OUTPUT_FILE "bin/examples/${EXAMPLE_NAME}/${SHADER_FILE_NAME}.bin" )
+  string( REGEX MATCH "^[fv]" SHADER_TYPE ${SHADER_FILE_NAME} )                 # strip initial char
+
+  message(${SHADER_NAME})
+
+  set( SHADER_OUTPUT_DIR  "${PROJECT_BINARY_DIR}/bin/examples/${EXAMPLE_NAME}/shaders/glsl" )
+  set( SHADER_OUTPUT_FILE ${SHADER_OUTPUT_DIR}/${SHADER_NAME}.bin )
 
   # ensure directory is created for shaderc output
   file( MAKE_DIRECTORY ${SHADER_OUTPUT_DIR} )
