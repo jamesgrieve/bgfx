@@ -6,10 +6,6 @@ set( TEXTUREC_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
 set( BGFX_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/../.. )
 set( BX_DIR       ${CMAKE_CURRENT_SOURCE_DIR}/../../../bx )
 
-message( ${TEXTUREC_DIR} )
-message( ${BGFX_DIR} )
-message( ${BX_DIR} )
-
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${TEXTUREC_DIR}/../bin/darwin )
 
 include_directories( ${BGFX_DIR}/include )
