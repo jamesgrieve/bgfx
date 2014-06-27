@@ -72,10 +72,11 @@ namespace bgfx
 
 		NSRect glViewRect = [[nsWindow contentView] bounds];
 		NSOpenGLView* glView = [[NSOpenGLView alloc] initWithFrame:glViewRect pixelFormat:pixelFormat];
-		
+		[glView setWantsBestResolutionOpenGLSurface:YES];
+        
 		[pixelFormat release];
 		[nsWindow setContentView:glView];
-		
+
 		NSOpenGLContext* glContext = [glView openGLContext];
 		BGFX_FATAL(NULL != glContext, Fatal::UnableToInitialize, "Failed to initialize GL context.");
 
@@ -106,8 +107,17 @@ namespace bgfx
 		GLint interval = _vsync ? 1 : 0;
 		NSOpenGLContext* glContext = (NSOpenGLContext*)m_context;
 		[glContext setValues:&interval forParameter:NSOpenGLCPSwapInterval];
+<<<<<<< HEAD
 		[glContext update];
 	}
+=======
+
+		NSWindow* nsWindow = (NSWindow*)g_bgfxNSWindow;
+        NSRect rect = { {0,0}, {_width,_height} };
+        rect = [nsWindow convertRectFromBacking:rect];
+        [nsWindow setContentSize:rect.size];
+    }
+>>>>>>> Update to OS X for retina displays
 
 	bool GlContext::isSwapChainSupported()
 	{
