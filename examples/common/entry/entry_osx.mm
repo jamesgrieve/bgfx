@@ -15,8 +15,8 @@
 #include <bx/thread.h>
 #include <bx/os.h>
 
-#define DEFAULT_WIDTH 1280
-#define DEFAULT_HEIGHT 720
+#define DEFAULT_WIDTH  1920
+#define DEFAULT_HEIGHT 1080
 
 @interface AppDelegate : NSObject<NSApplicationDelegate>
 {
@@ -224,6 +224,11 @@ namespace entry
 				|NSResizableWindowMask
 				backing:NSBackingStoreBuffered defer:NO
 				];
+            
+            // Convert from pixel coords to window coords and set content size
+            rect = [window convertRectFromBacking:rect];
+            [window setContentSize:rect.size];
+            
 			NSString* appName = [[NSProcessInfo processInfo] processName];
 			[window setTitle:appName];
 			[window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
