@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 # Debugging support
 # add_definitions(-DBGFX_CONFIG_DEBUG=1)
 
-set( BUILD_EXAMPLES OFF CACHE BOOL )
+set( BUILD_EXAMPLES OFF )
 
 set (BGFX_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set (BGFX_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
