@@ -31,9 +31,12 @@ namespace bgfx
 		{  8, 1, 1,  1 }, // R8
 		{ 16, 1, 1,  2 }, // R16
 		{ 16, 1, 1,  2 }, // R16F
+		{ 32, 1, 1,  4 }, // R32F
+		{ 64, 1, 1,  8 }, // RG32F
 		{ 32, 1, 1,  4 }, // BGRA8
 		{ 64, 1, 1,  8 }, // RGBA16
 		{ 64, 1, 1,  8 }, // RGBA16F
+		{128, 1, 1, 16 }, // RGBA32F
 		{ 16, 1, 1,  2 }, // R5G6B5
 		{ 16, 1, 1,  2 }, // RGBA4
 		{ 16, 1, 1,  2 }, // RGB5A1
@@ -70,9 +73,12 @@ namespace bgfx
 		"R8",        // R8
 		"R16",       // R16
 		"R16F",      // R16F
+		"R32F",      // R32F
+		"RG32F",     // RG32F
 		"BGRA8",     // BGRA8
 		"RGBA16",    // RGBA16
 		"RGBA16F",   // RGBA16F
+		"RGBA32F",   // RGBA32F
 		"R5G6B5",    // R5G6B5
 		"RGBA4",     // RGBA4
 		"RGB5A1",    // RGB5A1
@@ -1261,6 +1267,7 @@ namespace bgfx
 #define PVR3_BC5              13
 #define PVR3_R8               PVR3_MAKE8CC('r',   0,   0,   0,  8,  0,  0,  0)
 #define PVR3_R16              PVR3_MAKE8CC('r',   0,   0,   0, 16,  0,  0,  0)
+#define PVR3_R32              PVR3_MAKE8CC('r',   0,   0,   0, 32,  0,  0,  0)
 #define PVR3_BGRA8            PVR3_MAKE8CC('b', 'g', 'r', 'a',  8,  8,  8,  8)
 #define PVR3_RGBA16           PVR3_MAKE8CC('r', 'g', 'b', 'a', 16, 16, 16, 16)
 #define PVR3_RGB565           PVR3_MAKE8CC('r', 'g', 'b',   0,  5,  6,  5,  0)
@@ -1296,6 +1303,7 @@ namespace bgfx
 		{ PVR3_R8,               PVR3_CHANNEL_TYPE_ANY,   TextureFormat::R8      },
 		{ PVR3_R16,              PVR3_CHANNEL_TYPE_ANY,   TextureFormat::R16     },
 		{ PVR3_R16,              PVR3_CHANNEL_TYPE_FLOAT, TextureFormat::R16F    },
+		{ PVR3_R32,              PVR3_CHANNEL_TYPE_FLOAT, TextureFormat::R32F    },
 		{ PVR3_BGRA8,            PVR3_CHANNEL_TYPE_ANY,   TextureFormat::BGRA8   },
 		{ PVR3_RGBA16,           PVR3_CHANNEL_TYPE_ANY,   TextureFormat::RGBA16  },
 		{ PVR3_RGBA16,           PVR3_CHANNEL_TYPE_FLOAT, TextureFormat::RGBA16F },
