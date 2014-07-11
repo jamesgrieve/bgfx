@@ -632,7 +632,7 @@ bool compileGLSLShader(bx::CommandLine& _cmdLine, uint32_t _gles, const std::str
 		? kGlslOptShaderFragment 
 		: (ch == 'c' ? kGlslOptShaderCompute : kGlslOptShaderVertex);
 
-	glslopt_target target = kGlslTargetOpenGL;
+	glslopt_target target = kGlslTargetOpenGL;	
 	switch (_gles)
 	{
 		case 2:
@@ -714,7 +714,8 @@ bool compileGLSLShader(bx::CommandLine& _cmdLine, uint32_t _gles, const std::str
 				parse = bx::strws(bx::strword(parse) );
 
 				if (0 == strncmp(qualifier, "attribute", 9)
-				||  0 == strncmp(qualifier, "varying", 7) )
+                ||  0 == strncmp(qualifier, "varying", 7)
+                ||  0 == strncmp(qualifier, "in", 2) )
 				{
 					// skip attributes and varyings.
 					parse = eol + 1;
@@ -1750,7 +1751,7 @@ int main(int _argc, const char* _argv[])
 	}
 	else
 	{
-		gles = 2;
+//		gles = 2;
 	}
 
 	const char* bin2c = NULL;
