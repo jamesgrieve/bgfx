@@ -6,7 +6,14 @@ set( SHADERC_DIR  ${CMAKE_CURRENT_SOURCE_DIR} )
 set( FCPP_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/../../3rdparty/fcpp )
 set( GLSL_OPT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../3rdparty/glsl-optimizer )
 
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SHADERC_DIR}/../bin/darwin )
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tools )
+
+foreach( OUTPUT_CONFIG ${CMAKE_CONFIGURATION_TYPES} )
+
+  string( TOUPPER ${OUTPUT_CONFIG} OUTPUT_CONFIG )
+  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUT_CONFIG} ${CMAKE_BINARY_DIR}/bin/tools )
+
+endforeach()
 
 include_directories( ${FCPP_DIR} )
 include_directories( ${GLSL_OPT_DIR}/include )

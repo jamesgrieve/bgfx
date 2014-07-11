@@ -6,7 +6,14 @@ set( TEXTUREC_DIR ${CMAKE_CURRENT_SOURCE_DIR} )
 set( BGFX_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/../.. )
 set( BX_DIR       ${CMAKE_CURRENT_SOURCE_DIR}/../../../bx )
 
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${TEXTUREC_DIR}/../bin/darwin )
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tools )
+
+foreach( OUTPUT_CONFIG ${CMAKE_CONFIGURATION_TYPES} )
+
+  string( TOUPPER ${OUTPUT_CONFIG} OUTPUT_CONFIG )
+  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUT_CONFIG} ${CMAKE_BINARY_DIR}/bin/tools )
+
+endforeach()
 
 include_directories( ${BGFX_DIR}/include )
 include_directories( ${BGFX_DIR}/src )
