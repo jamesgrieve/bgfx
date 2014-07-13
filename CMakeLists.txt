@@ -66,6 +66,12 @@ endif()
 if (MSVC)
 
         # add_definitions(-DBGFX_CONFIG_RENDERER_OPENGL=1)
+
+        include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/khronos )
+        include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../bx/include/compat/msvc )
+
+        set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4199" )
+
         set ( BGFX_SRC ${BGFX_SRC} ${BGFX_SOURCE_DIR}/renderer_d3d11.cpp )
 
 endif()

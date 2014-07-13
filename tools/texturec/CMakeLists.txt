@@ -18,7 +18,6 @@ endforeach()
 include_directories( ${BGFX_DIR}/include )
 include_directories( ${BGFX_DIR}/src )
 include_directories( ${BX_DIR}/include )
-include_directories( ${BX_DIR}/include/compat/osx )
 include_directories( ${BGFX_DIR}/3rdparty/khronos )
 
 file( GLOB TEXTUREC_FILES ${TEXTUREC_DIR}/*.cpp
@@ -26,8 +25,17 @@ file( GLOB TEXTUREC_FILES ${TEXTUREC_DIR}/*.cpp
 
 if(APPLE)
 
+  include_directories( ${BX_DIR}/include/compat/osx )
+
   find_library(COCOA_LIBRARY Cocoa)
   set(TEXTUREC_LIBS ${COCOA_LIBRARY})
+
+endif()
+
+if(MSVC)
+
+	include_directories( ${BX_DIR}/include/compat/msvc )
+	include_directories( "$ENV{DXSDK_DIR}/include" )
 
 endif()
 
