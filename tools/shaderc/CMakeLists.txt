@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 
 project( shaderc )
 
+set( BX_DIR       ${CMAKE_CURRENT_SOURCE_DIR}/../../../bx )
+
 set( SHADERC_DIR  ${CMAKE_CURRENT_SOURCE_DIR} )
 set( FCPP_DIR     ${CMAKE_CURRENT_SOURCE_DIR}/../../3rdparty/fcpp )
 set( GLSL_OPT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../3rdparty/glsl-optimizer )
@@ -43,9 +45,19 @@ if(APPLE)
 
 endif()
 
+if(MSVC)
+    include_directories( ${BX_DIR}/include/compat/msvc )
+    include_directories( "$ENV{DXSDK_DIR}/include" )
+
+    link_directories( "$ENV{DXSDK_DIR}/lib/x86" )
+
+    set( SHADERC_LIBS ${SHADERC_LIBS} d3dx9 d3dcompiler dxguid )
+endif()
+
+
 set( CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fno-strict-aliasing )
 
 add_definitions( -DNINCLUDE=64 -DNWORK=65536 -DNBUFF=65536 )
 
 add_executable( shaderc ${SHADERC_FILES} )
-#target_link_libraries( shaderc ${SHADERC_LIBS} )
+target_link_libraries( shaderc ${SHADERC_LIBS} )
