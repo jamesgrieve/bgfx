@@ -205,7 +205,7 @@ namespace bgfx
 		{ D3DFMT_G16R16        }, // R16
 		{ D3DFMT_R16F          }, // R16F
 		{ D3DFMT_R32F          }, // R32F
-		{ D3DFMT_RG32F         }, // RG32F
+		{ D3DFMT_G32R32F       }, // RG32F
 		{ D3DFMT_A8R8G8B8      }, // BGRA8
 		{ D3DFMT_A16B16G16R16  }, // RGBA16
 		{ D3DFMT_A16B16G16R16F }, // RGBA16F
