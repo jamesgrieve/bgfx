@@ -1,4 +1,4 @@
-$input v_color0
+$input v_color0, v_texcoord0, v_texcoord1
 
 /*
  * Copyright 2011-2014 Branimir Karadzic. All rights reserved.
@@ -10,6 +10,6 @@ $input v_color0
 void main()
 {
 	gl_FragData[0] = v_color0;
-	gl_FragData[1] = v_color0;
-	gl_FragData[2] = v_color0;
+	gl_FragData[1] = v_texcoord0;
+	gl_FragData[2] = v_texcoord1;
 }
