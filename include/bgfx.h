@@ -890,6 +890,14 @@ namespace bgfx
 	///
 	void setViewClear(uint8_t _id, uint8_t _flags, uint32_t _rgba = 0x000000ff, float _depth = 1.0f, uint8_t _stencil = 0);
 
+	/// Set clear color for a specific target.
+	///
+	/// @param _id View id.
+	/// @param _target Index of target to set clear color
+	/// @param _rgba Color clear value.
+	///
+	void setViewTargetClear(uint8_t _id, uint8_t _target, float* _rgba);
+
 	/// Set view clear flags for multiple views.
 	void setViewClearMask(uint32_t _viewMask, uint8_t _flags, uint32_t _rgba = 0x000000ff, float _depth = 1.0f, uint8_t _stencil = 0);
 

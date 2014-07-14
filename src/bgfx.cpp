@@ -499,8 +499,11 @@ namespace bgfx
 		{
 			m_decl
 				.begin()
-				.add(Attrib::Position, 3, AttribType::Float)
-				.add(Attrib::Color0,   4, AttribType::Uint8, true)
+				.add(Attrib::Position,  3, AttribType::Float)
+				.add(Attrib::Color0,    4, AttribType::Float, true)
+				.add(Attrib::TexCoord0, 4, AttribType::Float, true)
+				.add(Attrib::TexCoord1, 4, AttribType::Float, true)
+				.add(Attrib::TexCoord2, 4, AttribType::Float, true)
 				.end();
 
 			ShaderHandle vsh = BGFX_INVALID_HANDLE;
@@ -2411,6 +2414,12 @@ again:
 		s_ctx->setViewClear(_id, _flags, _rgba, _depth, _stencil);
 	}
 
+	void setViewTargetClear(uint8_t _id, uint8_t _target, float* _rgba)
+	{
+		BGFX_CHECK_MAIN_THREAD();
+		s_ctx->setViewTargetClear(_id, _target, _rgba);
+	}
+
 	void setViewClearMask(uint32_t _viewMask, uint8_t _flags, uint32_t _rgba, float _depth, uint8_t _stencil)
 	{
 		BGFX_CHECK_MAIN_THREAD();
@@ -3040,6 +3049,11 @@ BGFX_C_API void bgfx_set_view_scissor_mask(uint32_t _viewMask, uint16_t _x, uint
 BGFX_C_API void bgfx_set_view_clear(uint8_t _id, uint8_t _flags, uint32_t _rgba, float _depth, uint8_t _stencil)
 {
 	bgfx::setViewClear(_id, _flags, _rgba, _depth, _stencil);
+}
+
+BGFX_C_API void bgfx_set_view_target_clear(uint8_t _id, uint8_t _target, float* _rgba)
+{
+	bgfx::setViewTargetClear(_id, _target, _rgba);
 }
 
 BGFX_C_API void bgfx_set_view_clear_mask(uint32_t _viewMask, uint8_t _flags, uint32_t _rgba, float _depth, uint8_t _stencil)

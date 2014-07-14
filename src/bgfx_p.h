@@ -176,11 +176,22 @@ namespace bgfx
 
 	struct Clear
 	{
-		uint32_t m_rgba;
+		float m_rgba_0[4];
+		float m_rgba_1[4];
+		float m_rgba_2[4];
+		float m_rgba_3[4];
 		float m_depth;
 		uint8_t m_stencil;
 		uint8_t m_flags;
 	};
+
+	inline void rgbaToFloat4(float* dest_vec, uint32_t src_rgba)
+	{
+		dest_vec[0] = ((src_rgba>>24) & 0xFF)/255.0f;
+		dest_vec[1] = ((src_rgba>>16) & 0xFF)/255.0f;
+		dest_vec[2] = ((src_rgba>>8) & 0xFF)/255.0f;
+		dest_vec[3] = (src_rgba & 0xFF)/255.0f;
+	}
 
 	struct Rect
 	{
@@ -2494,9 +2505,17 @@ namespace bgfx
 		{
 			Clear& clear = m_clear[_id];
 			clear.m_flags = _flags;
-			clear.m_rgba = _rgba;
+			rgbaToFloat4( clear.m_rgba_0, _rgba );
+			memcpy(clear.m_rgba_1, clear.m_rgba_0, sizeof(float)*4);
+			memcpy(clear.m_rgba_2, clear.m_rgba_0, sizeof(float)*8);
 			clear.m_depth = _depth;
 			clear.m_stencil = _stencil;
+		}
+
+		BGFX_API_FUNC(void setViewTargetClear(uint8_t _id, uint8_t _target, float* _rgba) )
+		{
+			Clear& clear = m_clear[_id];
+			memcpy(clear.m_rgba_0 + _target*4, _rgba, sizeof(float)*4);
 		}
 
 		BGFX_API_FUNC(void setViewClearMask(uint32_t _viewMask, uint8_t _flags, uint32_t _rgba, float _depth, uint8_t _stencil) )
