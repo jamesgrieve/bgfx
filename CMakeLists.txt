@@ -29,6 +29,8 @@ add_subdirectory(tools)
 
 file(GLOB BGFX_SRC ${BGFX_SOURCE_DIR}/*.cpp ${BGFX_SOURCE_DIR}/*.h )
 
+add_definitions( -DBX_CONFIG_ENABLE_MSVC_LEVEL4_WARNINGS=1 )
+
 if(APPLE)
 
     add_definitions( -U__STRICT_ANSI__ -Wfatal-errors -Wunused-value )
@@ -66,6 +68,7 @@ endif()
 if (MSVC)
 
         add_definitions(-DBGFX_CONFIG_RENDERER_DIRECT3D11)
+        add_definitions(-D__STDC_FORMAT_MACROS)
 
         include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/khronos )
         include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../bx/include/compat/msvc )
