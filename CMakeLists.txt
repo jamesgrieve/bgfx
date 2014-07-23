@@ -65,7 +65,7 @@ endif()
 
 if (MSVC)
 
-        # add_definitions(-DBGFX_CONFIG_RENDERER_OPENGL=1)
+        add_definitions(-DBGFX_CONFIG_RENDERER_DIRECT3D11)
 
         include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/khronos )
         include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../bx/include/compat/msvc )

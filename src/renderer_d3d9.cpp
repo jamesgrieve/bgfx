@@ -2555,8 +2555,7 @@ namespace bgfx
 						if (BGFX_CLEAR_COLOR_BIT & clear.m_flags)
 						{
 							flags |= D3DCLEAR_TARGET;
-							uint32_t rgba = clear.m_rgba;
-							color = D3DCOLOR_RGBA(rgba>>24, (rgba>>16)&0xff, (rgba>>8)&0xff, rgba&0xff);
+							color = D3DCOLOR_RGBA(int(clear.m_rgba_0[0] * 255.0f), int(clear.m_rgba_0[1] * 255.0f), int(clear.m_rgba_0[2] * 255.0f), int(clear.m_rgba_0[3] * 255.0f));
 							DX_CHECK(device->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED|D3DCOLORWRITEENABLE_GREEN|D3DCOLORWRITEENABLE_BLUE|D3DCOLORWRITEENABLE_ALPHA) );
 						}
 
