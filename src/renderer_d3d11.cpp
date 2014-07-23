@@ -1103,9 +1103,7 @@ namespace bgfx
 				if (NULL != m_currentColor
 				&&  BGFX_CLEAR_COLOR_BIT & _clear.m_flags)
 				{
-					uint32_t rgba = _clear.m_rgba;
-					float frgba[4] = { (rgba>>24)/255.0f, ( (rgba>>16)&0xff)/255.0f, ( (rgba>>8)&0xff)/255.0f, (rgba&0xff)/255.0f };
-					m_deviceCtx->ClearRenderTargetView(m_currentColor, frgba);
+					m_deviceCtx->ClearRenderTargetView(m_currentColor, _clear.m_rgba_0);
 				}
 
 				if (NULL != m_currentDepthStencil
@@ -1664,7 +1662,10 @@ namespace bgfx
 					} * vertex = (Vertex*)_clearQuad.m_vb->data;
 					BX_CHECK(stride == sizeof(Vertex), "Stride/Vertex mismatch (stride %d, sizeof(Vertex) %d)", stride, sizeof(Vertex) );
 
-					const uint32_t abgr = bx::endianSwap(_clear.m_rgba);
+					const uint32_t abgr = (uint32_t(_clear.m_rgba_0[3]*255.0f)<<24) |
+										  (uint32_t(_clear.m_rgba_0[2]*255.0f)<<16) |
+										  (uint32_t(_clear.m_rgba_0[1]*255.0f)<<8)  |
+										   uint32_t(_clear.m_rgba_0[0]*255.0f)      ;
 					const float depth = _clear.m_depth;
 
 					vertex->m_x = -1.0f;
@@ -2333,13 +2334,12 @@ namespace bgfx
 
 		if (BGFX_CLEAR_COLOR_BIT & _clear.m_flags)
 		{
-			uint32_t rgba = _clear.m_rgba;
-			float frgba[4] = { (rgba>>24)/255.0f, ( (rgba>>16)&0xff)/255.0f, ( (rgba>>8)&0xff)/255.0f, (rgba&0xff)/255.0f };
 			for (uint32_t ii = 0, num = m_num; ii < num; ++ii)
 			{
 				if (NULL != m_rtv[ii])
 				{
-					deviceCtx->ClearRenderTargetView(m_rtv[ii], frgba);
+					int clear_idx = (ii<4) ? ii : 4;	// max of four clear channels [shoudl be defined]
+					deviceCtx->ClearRenderTargetView(m_rtv[ii], _clear.m_rgba_0 + clear_idx*sizeof(float)*4);
 				}
 			}
 		}
