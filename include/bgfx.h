@@ -525,7 +525,7 @@ namespace bgfx
 	/// @param _num Number of vertices.
 	/// @param _decl Vertex declaration.
 	///
-	DynamicVertexBufferHandle createDynamicVertexBuffer(uint16_t _num, const VertexDecl& _decl);
+	DynamicVertexBufferHandle createDynamicVertexBuffer(uint32_t _num, const VertexDecl& _decl);
 
 	/// Create dynamic vertex buffer and initialize it.
 	///
