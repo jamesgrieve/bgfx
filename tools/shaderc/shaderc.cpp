@@ -1489,6 +1489,9 @@ struct Preprocessor
 
 	char* fgets(char* _buffer, int _size)
 	{
+		if (m_fgetsPos >= m_input.size())
+			return NULL;
+
 		int ii = 0;
 		for (char ch = m_input[m_fgetsPos]; m_fgetsPos < m_input.size() && ii < _size-1; ch = m_input[++m_fgetsPos])
 		{
