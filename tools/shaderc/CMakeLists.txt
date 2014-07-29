@@ -49,7 +49,8 @@ if(MSVC)
     include_directories( ${BX_DIR}/include/compat/msvc )
     include_directories( "$ENV{DXSDK_DIR}/include" )
 
-    link_directories( "$ENV{DXSDK_DIR}/lib/x86" )
+#    link_directories( "$ENV{DXSDK_DIR}/lib/x86" )
+    link_directories( "$ENV{DXSDK_DIR}/lib/x64" )
 
     set( SHADERC_LIBS ${SHADERC_LIBS} d3dx9 d3dcompiler dxguid )
 endif()
