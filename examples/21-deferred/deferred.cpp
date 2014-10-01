@@ -10,19 +10,10 @@
 #include "bounds.h"
 
 #define RENDER_PASS_GEOMETRY_ID       0
-#define RENDER_PASS_GEOMETRY_BIT      (1<<RENDER_PASS_GEOMETRY_ID)
-
 #define RENDER_PASS_LIGHT_ID          1
-#define RENDER_PASS_LIGHT_BIT         (1<<RENDER_PASS_LIGHT_ID)
-
 #define RENDER_PASS_COMBINE_ID        2
-#define RENDER_PASS_COMBINE_BIT       (1<<RENDER_PASS_COMBINE_ID)
-
 #define RENDER_PASS_DEBUG_LIGHTS_ID   3
-#define RENDER_PASS_DEBUG_LIGHTS_BIT  (1<<RENDER_PASS_DEBUG_LIGHTS_ID)
-
 #define RENDER_PASS_DEBUG_GBUFFER_ID  4
-#define RENDER_PASS_DEBUG_GBUFFER_BIT (1<<RENDER_PASS_DEBUG_GBUFFER_ID)
 
 struct PosNormalTangentTexcoordVertex
 {
@@ -155,7 +146,7 @@ static const uint16_t s_cubeIndices[36] =
 
 	 8, 10,  9,
 	 9, 10, 11,
-    12, 13, 14,
+	12, 13, 14,
 	13, 15, 14,
 
 	16, 18, 17,
@@ -232,18 +223,25 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 	// Enable debug text.
 	bgfx::setDebug(debug);
 
-	// Set view 0 clear state.
+	// Set clear color palette for index 0
+	bgfx::setClearColor(0, UINT32_C(0x00000000) );
+
+	// Set clear color palette for index 1
+	bgfx::setClearColor(1, UINT32_C(0x303030ff) );
+
+	// Set geometry pass view clear state.
 	bgfx::setViewClear(RENDER_PASS_GEOMETRY_ID
 		, BGFX_CLEAR_COLOR_BIT|BGFX_CLEAR_DEPTH_BIT
-		, 0x303030ff
 		, 1.0f
 		, 0
+		, 1
 		);
 
+	// Set light pass view clear state.
 	bgfx::setViewClear(RENDER_PASS_LIGHT_ID
 		, BGFX_CLEAR_COLOR_BIT|BGFX_CLEAR_DEPTH_BIT
-		, 0
 		, 1.0f
+		, 0
 		, 0
 		);
 
@@ -411,7 +409,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			imguiBeginScrollArea("Settings", width - width / 5 - 10, 10, width / 5, height / 3, &scrollArea);
 			imguiSeparatorLine();
 
-			imguiSlider("Num lights", &numLights, 1, 2048);
+			imguiSlider("Num lights", numLights, 1, 2048);
 
 			if (imguiCheck("Show G-Buffer.", showGBuffer) )
 			{
@@ -428,7 +426,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 				animateMesh = !animateMesh;
 			}
 
-			imguiSlider("Lights animation speed", &lightAnimationSpeed, 0.0f, 0.4f, 0.01f);
+			imguiSlider("Lights animation speed", lightAnimationSpeed, 0.0f, 0.4f, 0.01f);
 			
 			imguiEndScrollArea();
 			imguiEndFrame();
@@ -441,14 +439,11 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			float vp[16];
 			float invMvp[16];
 			{
-				bgfx::setViewRectMask(0
-					| RENDER_PASS_GEOMETRY_BIT
-					| RENDER_PASS_LIGHT_BIT
-					| RENDER_PASS_COMBINE_BIT
-					| RENDER_PASS_DEBUG_LIGHTS_BIT
-					| RENDER_PASS_DEBUG_GBUFFER_BIT
-					, 0, 0, width, height
-					);
+				bgfx::setViewRect(RENDER_PASS_GEOMETRY_ID,      0, 0, width, height);
+				bgfx::setViewRect(RENDER_PASS_LIGHT_ID,         0, 0, width, height);
+				bgfx::setViewRect(RENDER_PASS_COMBINE_ID,       0, 0, width, height);
+				bgfx::setViewRect(RENDER_PASS_DEBUG_LIGHTS_ID,  0, 0, width, height);
+				bgfx::setViewRect(RENDER_PASS_DEBUG_GBUFFER_ID, 0, 0, width, height);
 
 				bgfx::setViewFrameBuffer(RENDER_PASS_LIGHT_ID, lightBuffer);
 
@@ -462,11 +457,8 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 				bx::mtxInverse(invMvp, vp);
 
 				bx::mtxOrtho(proj, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 100.0f);
-				bgfx::setViewTransformMask(0
-					| RENDER_PASS_LIGHT_BIT
-					| RENDER_PASS_COMBINE_BIT
-					, NULL, proj
-					);
+				bgfx::setViewTransform(RENDER_PASS_LIGHT_ID,   NULL, proj);
+				bgfx::setViewTransform(RENDER_PASS_COMBINE_ID, NULL, proj);
 
 				const float aspectRatio = float(height)/float(width);
 				const float size = 10.0f;

@@ -143,10 +143,6 @@ void screenSpaceQuad(float _textureWidth, float _textureHeight, bool _originBott
 
 int _main_(int /*_argc*/, char** /*_argv*/)
 {
-	// Create vertex stream declaration.
-	PosColorVertex::init();
-	PosColorTexCoord0Vertex::init();
-
 	uint32_t width = 1280;
 	uint32_t height = 720;
 	uint32_t debug = BGFX_DEBUG_TEXT;
@@ -154,6 +150,10 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 	bgfx::init();
 	bgfx::reset(width, height, reset);
+
+	// Create vertex stream declaration.
+	PosColorVertex::init();
+	PosColorTexCoord0Vertex::init();
 
 	// Enable debug text.
 	bgfx::setDebug(debug);
@@ -273,7 +273,8 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		imguiEndFrame();
 
 		// Set view 0 default viewport.
-		bgfx::setViewRectMask(0x3, 0, 0, width, height);
+		bgfx::setViewRect(0, 0, 0, width, height);
+		bgfx::setViewRect(1, 0, 0, width, height);
 
 		int64_t now = bx::getHPCounter();
 		static int64_t last = now;
@@ -306,11 +307,25 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 		bgfx::setViewTransform(0, view, proj);
 
-		bgfx::setViewClearMask(0x3
+		// Set clear color palette for index 0
+		bgfx::setClearColor(0, 0.0f, 0.0f, 0.0f, 0.0f);
+
+		// Set clear color palette for index 1
+		bgfx::setClearColor(1, 1.0f, 1.0f, 1.0f, 1.0f);
+
+		bgfx::setViewClear(0
 			, BGFX_CLEAR_COLOR_BIT|BGFX_CLEAR_DEPTH_BIT
-			, 0x00000000
-			, 1.0f
-			, 0
+			, 1.0f // Depth
+			, 0    // Stencil
+			, 0    // FB texture 0, color palette 0
+			, 1 == mode ? 1 : 0 // FB texture 1, color palette 1
+			);
+
+		bgfx::setViewClear(1
+			, BGFX_CLEAR_COLOR_BIT|BGFX_CLEAR_DEPTH_BIT
+			, 1.0f // Depth
+			, 0    // Stencil
+			, 0    // Color palette 0
 			);
 
 		bgfx::FrameBufferHandle invalid = BGFX_INVALID_HANDLE;

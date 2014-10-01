@@ -265,16 +265,14 @@ namespace
 			gl->u_halfTexel.idx = bgfx::invalidHandle;
 		}
 
-		gl->viewid = 0;
-
 		s_nvgDecl
 			.begin()
 			.add(bgfx::Attrib::Position,  2, bgfx::AttribType::Float)
 			.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
 			.end();
 
-		int align = 1;
-		gl->fragSize = sizeof(struct GLNVGfragUniforms) + align - sizeof(struct GLNVGfragUniforms) % align; 
+		int align = 16;
+		gl->fragSize = sizeof(struct GLNVGfragUniforms) + align - sizeof(struct GLNVGfragUniforms) % align;
 
 		return 1;
 	}
@@ -513,6 +511,7 @@ namespace
 		NVG_NOTUSED(alphaBlend);
 		gl->view[0] = (float)width;
 		gl->view[1] = (float)height;
+		bgfx::setViewRect(gl->viewid, 0, 0, width, height);
 	}
 
 	static void fan(uint32_t _start, uint32_t _count)
@@ -764,23 +763,30 @@ namespace
 	static int glnvg__allocPaths(struct GLNVGcontext* gl, int n)
 	{
 		int ret = 0;
-		if (gl->npaths+n > gl->cpaths)
-		{
-			gl->cpaths = gl->cpaths == 0 ? glnvg__maxi(n, 32) : gl->cpaths * 2;
-			gl->paths = (struct GLNVGpath*)realloc(gl->paths, sizeof(struct GLNVGpath) * gl->cpaths);
+		if (gl->npaths + n > gl->cpaths) {
+			GLNVGpath* paths;
+			int cpaths = glnvg__maxi(gl->npaths + n, 128) + gl->cpaths / 2; // 1.5x Overallocate
+			paths = (GLNVGpath*)realloc(gl->paths, sizeof(GLNVGpath) * cpaths);
+			if (paths == NULL) return -1;
+			gl->paths = paths;
+			gl->cpaths = cpaths;
 		}
 		ret = gl->npaths;
 		gl->npaths += n;
 		return ret;
 	}
 
-	static int glnvg__allocVerts(struct GLNVGcontext* gl, int n)
+	static int glnvg__allocVerts(GLNVGcontext* gl, int n)
 	{
 		int ret = 0;
 		if (gl->nverts+n > gl->cverts)
 		{
-			gl->cverts = gl->cverts == 0 ? glnvg__maxi(n, 256) : gl->cverts * 2;
-			gl->verts = (struct NVGvertex*)realloc(gl->verts, sizeof(struct NVGvertex) * gl->cverts);
+			NVGvertex* verts;
+			int cverts = glnvg__maxi(gl->nverts + n, 4096) + gl->cverts/2; // 1.5x Overallocate
+			verts = (NVGvertex*)realloc(gl->verts, sizeof(NVGvertex) * cverts);
+			if (verts == NULL) return -1;
+			gl->verts = verts;
+			gl->cverts = cverts;
 		}
 		ret = gl->nverts;
 		gl->nverts += n;
@@ -964,6 +970,11 @@ namespace
 		bgfx::destroyUniform(gl->u_params);
 		bgfx::destroyUniform(gl->s_tex);
 
+		if (bgfx::isValid(gl->u_halfTexel) )
+		{
+			bgfx::destroyUniform(gl->u_halfTexel);
+		}
+
 		for (uint32_t ii = 0, num = gl->ntextures; ii < num; ++ii)
 		{
 			if (bgfx::isValid(gl->textures[ii].id) )
@@ -979,7 +990,7 @@ namespace
 
 } // namespace
 
-struct NVGcontext* nvgCreate(int atlasw, int atlash, int edgeaa)
+struct NVGcontext* nvgCreate(int atlasw, int atlash, int edgeaa, unsigned char viewid)
 {
 	struct NVGparams params;
 	struct NVGcontext* ctx = NULL;
@@ -1005,6 +1016,7 @@ struct NVGcontext* nvgCreate(int atlasw, int atlash, int edgeaa)
 	params.edgeAntiAlias = edgeaa;
 
 	gl->edgeAntiAlias = edgeaa;
+	gl->viewid = uint8_t(viewid);
 
 	ctx = nvgCreateInternal(&params);
 	if (ctx == NULL) goto error;

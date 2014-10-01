@@ -16,10 +16,7 @@
 #include "entry/entry.h"
 
 #define RENDER_SHADOW_PASS_ID 0
-#define RENDER_SHADOW_PASS_BIT (1<<RENDER_SHADOW_PASS_ID)
-
 #define RENDER_SCENE_PASS_ID  1
-#define RENDER_SCENE_PASS_BIT (1<<RENDER_SCENE_PASS_ID)
 
 uint32_t packUint32(uint8_t _x, uint8_t _y, uint8_t _z, uint8_t _w)
 {
@@ -54,8 +51,7 @@ struct PosNormalVertex
 	uint32_t m_normal;
 };
 
-static const uint32_t s_numHPlaneVertices = 4;
-static PosNormalVertex s_hplaneVertices[s_numHPlaneVertices] =
+static PosNormalVertex s_hplaneVertices[] =
 {
 	{ -1.0f, 0.0f,  1.0f, packF4u(0.0f, 1.0f, 0.0f) },
 	{  1.0f, 0.0f,  1.0f, packF4u(0.0f, 1.0f, 0.0f) },
@@ -63,8 +59,7 @@ static PosNormalVertex s_hplaneVertices[s_numHPlaneVertices] =
 	{  1.0f, 0.0f, -1.0f, packF4u(0.0f, 1.0f, 0.0f) },
 };
 
-static const uint32_t s_numPlaneIndices = 6;
-static const uint16_t s_planeIndices[s_numPlaneIndices] =
+static const uint16_t s_planeIndices[] =
 {
 	0, 1, 2,
 	1, 3, 2,
@@ -184,7 +179,11 @@ struct Group
 	Obb m_obb;
 	PrimitiveArray m_prims;
 };
-;
+
+namespace bgfx
+{
+	int32_t read(bx::ReaderI* _reader, bgfx::VertexDecl& _decl);
+}
 
 struct Mesh
 {
@@ -213,8 +212,8 @@ struct Mesh
 
 	void load(const char* _filePath)
 	{
-#define BGFX_CHUNK_MAGIC_VB BX_MAKEFOURCC('V', 'B', ' ', 0x0)
-#define BGFX_CHUNK_MAGIC_IB BX_MAKEFOURCC('I', 'B', ' ', 0x0)
+#define BGFX_CHUNK_MAGIC_VB  BX_MAKEFOURCC('V', 'B', ' ', 0x1)
+#define BGFX_CHUNK_MAGIC_IB  BX_MAKEFOURCC('I', 'B', ' ', 0x0)
 #define BGFX_CHUNK_MAGIC_PRI BX_MAKEFOURCC('P', 'R', 'I', 0x0)
 
 		bx::CrtFileReader reader;
@@ -233,7 +232,7 @@ struct Mesh
 					bx::read(&reader, group.m_aabb);
 					bx::read(&reader, group.m_obb);
 
-					bx::read(&reader, m_decl);
+					bgfx::read(&reader, m_decl);
 					uint16_t stride = m_decl.getStride();
 
 					uint16_t numVertices;
@@ -437,7 +436,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 	bunnyMesh.load("meshes/bunny.bin");
 	cubeMesh.load("meshes/cube.bin");
 	hollowcubeMesh.load("meshes/hollowcube.bin");
-	hplaneMesh.load(s_hplaneVertices, s_numHPlaneVertices, PosNormalDecl, s_planeIndices, s_numPlaneIndices);
+	hplaneMesh.load(s_hplaneVertices, BX_COUNTOF(s_hplaneVertices), PosNormalDecl, s_planeIndices, BX_COUNTOF(s_planeIndices) );
 
 	// Render targets.
 	uint16_t shadowMapSize = 512;
@@ -577,7 +576,12 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		bgfx::setViewTransform(RENDER_SCENE_PASS_ID, view, proj);
 
 		// Clear backbuffer and shadowmap framebuffer at beginning.
-		bgfx::setViewClearMask(RENDER_SHADOW_PASS_BIT|RENDER_SCENE_PASS_BIT
+		bgfx::setViewClear(RENDER_SHADOW_PASS_ID
+			, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT
+			, 0x303030ff, 1.0f, 0
+			);
+
+		bgfx::setViewClear(RENDER_SCENE_PASS_ID
 			, BGFX_CLEAR_COLOR_BIT | BGFX_CLEAR_DEPTH_BIT
 			, 0x303030ff, 1.0f, 0
 			);

@@ -8,8 +8,10 @@
 
 #include <string>
 #include <vector>
-#include <unordered_map>
 #include <map>
+#include <tinystl/allocator.h>
+#include <tinystl/unordered_map.h>
+namespace stl = tinystl;
 
 namespace std { namespace tr1 {} }
 using namespace std::tr1;
@@ -69,11 +71,24 @@ struct PosNormalTexcoordVertex
 	uint32_t m_normal;
 	float    m_u;
 	float    m_v;
+
+	static void init()
+	{
+		ms_decl
+			.begin()
+			.add(bgfx::Attrib::Position,  3, bgfx::AttribType::Float)
+			.add(bgfx::Attrib::Normal,    4, bgfx::AttribType::Uint8, true, true)
+			.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+			.end();
+	}
+
+	static bgfx::VertexDecl ms_decl;
 };
 
+bgfx::VertexDecl PosNormalTexcoordVertex::ms_decl;
+
 static const float s_texcoord = 50.0f;
-static const uint32_t s_numHPlaneVertices = 4;
-static PosNormalTexcoordVertex s_hplaneVertices[s_numHPlaneVertices] =
+static PosNormalTexcoordVertex s_hplaneVertices[] =
 {
 	{ -1.0f, 0.0f,  1.0f, packF4u(0.0f, 1.0f, 0.0f), s_texcoord, s_texcoord },
 	{  1.0f, 0.0f,  1.0f, packF4u(0.0f, 1.0f, 0.0f), s_texcoord, 0.0f       },
@@ -81,8 +96,7 @@ static PosNormalTexcoordVertex s_hplaneVertices[s_numHPlaneVertices] =
 	{  1.0f, 0.0f, -1.0f, packF4u(0.0f, 1.0f, 0.0f), 0.0f,       0.0f       },
 };
 
-static const uint32_t s_numVPlaneVertices = 4;
-static PosNormalTexcoordVertex s_vplaneVertices[s_numVPlaneVertices] =
+static PosNormalTexcoordVertex s_vplaneVertices[] =
 {
 	{ -1.0f,  1.0f, 0.0f, packF4u(0.0f, 0.0f, -1.0f), 1.0f, 1.0f },
 	{  1.0f,  1.0f, 0.0f, packF4u(0.0f, 0.0f, -1.0f), 1.0f, 0.0f },
@@ -90,15 +104,13 @@ static PosNormalTexcoordVertex s_vplaneVertices[s_numVPlaneVertices] =
 	{  1.0f, -1.0f, 0.0f, packF4u(0.0f, 0.0f, -1.0f), 0.0f, 0.0f },
 };
 
-static const uint32_t s_numPlaneIndices = 6;
-static const uint16_t s_planeIndices[s_numPlaneIndices] =
+static const uint16_t s_planeIndices[] =
 {
 	0, 1, 2,
 	1, 3, 2,
 };
 
 static const char* s_shaderPath = NULL;
-static bool s_flipV = false;
 static float s_texelHalf = 0.0f;
 
 static uint32_t s_viewMask = 0;
@@ -174,6 +186,39 @@ static bgfx::ProgramHandle loadProgram(const char* _vsName, const char* _fsName)
 
 	// Create program from shaders.
 	return bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */);
+}
+
+void setViewClearMask(uint32_t _viewMask, uint8_t _flags, uint32_t _rgba, float _depth, uint8_t _stencil)
+{
+	for (uint32_t view = 0, viewMask = _viewMask, ntz = bx::uint32_cnttz(_viewMask); 0 != viewMask; viewMask >>= 1, view += 1, ntz = bx::uint32_cnttz(viewMask) )
+	{
+		viewMask >>= ntz;
+		view += ntz;
+
+		bgfx::setViewClear( (uint8_t)view, _flags, _rgba, _depth, _stencil);
+	}
+}
+
+void setViewTransformMask(uint32_t _viewMask, const void* _view, const void* _proj)
+{
+	for (uint32_t view = 0, viewMask = _viewMask, ntz = bx::uint32_cnttz(_viewMask); 0 != viewMask; viewMask >>= 1, view += 1, ntz = bx::uint32_cnttz(viewMask) )
+	{
+		viewMask >>= ntz;
+		view += ntz;
+
+		bgfx::setViewTransform( (uint8_t)view, _view, _proj);
+	}
+}
+
+void setViewRectMask(uint32_t _viewMask, uint16_t _x, uint16_t _y, uint16_t _width, uint16_t _height)
+{
+	for (uint32_t view = 0, viewMask = _viewMask, ntz = bx::uint32_cnttz(_viewMask); 0 != viewMask; viewMask >>= 1, view += 1, ntz = bx::uint32_cnttz(viewMask) )
+	{
+		viewMask >>= ntz;
+		view += ntz;
+
+		bgfx::setViewRect( (uint8_t)view, _x, _y, _width, _height);
+	}
 }
 
 void mtxBillboard(float* __restrict _result
@@ -258,8 +303,6 @@ struct Uniforms
 
 		m_time = 0.0f;
 
-		m_flipV = float(s_flipV) * 2.0f - 1.0f;
-
 		m_lightPosRadius[0] = 0.0f;
 		m_lightPosRadius[1] = 0.0f;
 		m_lightPosRadius[2] = 0.0f;
@@ -283,7 +326,6 @@ struct Uniforms
 		u_fog                           = bgfx::createUniform("u_fog",                           bgfx::UniformType::Uniform4fv);
 		u_color                         = bgfx::createUniform("u_color",                         bgfx::UniformType::Uniform4fv);
 		u_time                          = bgfx::createUniform("u_time",                          bgfx::UniformType::Uniform1f );
-		u_flipV                         = bgfx::createUniform("u_flipV",                         bgfx::UniformType::Uniform1f );
 		u_lightPosRadius                = bgfx::createUniform("u_lightPosRadius",                bgfx::UniformType::Uniform4fv);
 		u_lightRgbInnerR                = bgfx::createUniform("u_lightRgbInnerR",                bgfx::UniformType::Uniform4fv);
 		u_virtualLightPos_extrusionDist = bgfx::createUniform("u_virtualLightPos_extrusionDist", bgfx::UniformType::Uniform4fv);
@@ -296,7 +338,6 @@ struct Uniforms
 		bgfx::setUniform(u_diffuse,            &m_diffuse);
 		bgfx::setUniform(u_specular_shininess, &m_specular_shininess);
 		bgfx::setUniform(u_fog,                &m_fog);
-		bgfx::setUniform(u_flipV,              &m_flipV);
 	}
 
 	//call this once per frame
@@ -326,7 +367,6 @@ struct Uniforms
 		bgfx::destroyUniform(u_fog);
 		bgfx::destroyUniform(u_color);
 		bgfx::destroyUniform(u_time);
-		bgfx::destroyUniform(u_flipV);
 		bgfx::destroyUniform(u_lightPosRadius);
 		bgfx::destroyUniform(u_lightRgbInnerR);
 		bgfx::destroyUniform(u_virtualLightPos_extrusionDist);
@@ -356,7 +396,6 @@ struct Uniforms
 	float m_fog[4];
 	float m_color[4];
 	float m_time;
-	float m_flipV;
 	float m_lightPosRadius[4];
 	float m_lightRgbInnerR[4];
 	float m_virtualLightPos_extrusionDist[4];
@@ -381,7 +420,6 @@ struct Uniforms
 	bgfx::UniformHandle u_fog;
 	bgfx::UniformHandle u_color;
 	bgfx::UniformHandle u_time;
-	bgfx::UniformHandle u_flipV;
 	bgfx::UniformHandle u_lightPosRadius;
 	bgfx::UniformHandle u_lightRgbInnerR;
 	bgfx::UniformHandle u_virtualLightPos_extrusionDist;
@@ -614,14 +652,6 @@ void submit(uint8_t _id, int32_t _depth = 0)
 	s_viewMask |= 1 << _id;
 }
 
-void submitMask(uint32_t _viewMask, int32_t _depth = 0)
-{
-	bgfx::submitMask(_viewMask, _depth);
-
-	// Keep track of submited view ids.
-	s_viewMask |= _viewMask;
-}
-
 struct Aabb
 {
 	float m_min[3];
@@ -692,7 +722,7 @@ struct HalfEdges
 	{
 		m_data = (HalfEdge*)malloc(2 * _numIndices * sizeof(HalfEdge) );
 
-		std::unordered_map<uint16_t, std::vector<uint16_t> > edges;
+		stl::unordered_map<uint16_t, std::vector<uint16_t> > edges;
 		for (uint32_t ii = 0; ii < _numIndices; ii+=3)
 		{
 			uint16_t idx0 = _indices[ii];
@@ -1028,6 +1058,11 @@ struct Group
 
 typedef std::vector<Group> GroupArray;
 
+namespace bgfx
+{
+	int32_t read(bx::ReaderI* _reader, bgfx::VertexDecl& _decl);
+}
+
 struct Mesh
 {
 	void load(const void* _vertices, uint32_t _numVertices, const bgfx::VertexDecl _decl, const uint16_t* _indices, uint32_t _numIndices)
@@ -1061,8 +1096,8 @@ struct Mesh
 
 	void load(const char* _filePath)
 	{
-#define BGFX_CHUNK_MAGIC_VB BX_MAKEFOURCC('V', 'B', ' ', 0x0)
-#define BGFX_CHUNK_MAGIC_IB BX_MAKEFOURCC('I', 'B', ' ', 0x0)
+#define BGFX_CHUNK_MAGIC_VB  BX_MAKEFOURCC('V', 'B', ' ', 0x1)
+#define BGFX_CHUNK_MAGIC_IB  BX_MAKEFOURCC('I', 'B', ' ', 0x0)
 #define BGFX_CHUNK_MAGIC_PRI BX_MAKEFOURCC('P', 'R', 'I', 0x0)
 
 		bx::CrtFileReader reader;
@@ -1081,7 +1116,7 @@ struct Mesh
 					bx::read(&reader, group.m_aabb);
 					bx::read(&reader, group.m_obb);
 
-					bx::read(&reader, m_decl);
+					bgfx::read(&reader, m_decl);
 					uint16_t stride = m_decl.getStride();
 
 					bx::read(&reader, group.m_numVertices);
@@ -1145,6 +1180,7 @@ struct Mesh
 
 			default:
 				DBG("%08x at %d", chunk, reader.seek() );
+				abort();
 				break;
 			}
 		}
@@ -1915,12 +1951,10 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 	case bgfx::RendererType::OpenGL:
 		s_shaderPath = "shaders/glsl/";
-		s_flipV = true;
 		break;
 
 	case bgfx::RendererType::OpenGLES:
 		s_shaderPath = "shaders/gles/";
-		s_flipV = true;
 		break;
 	}
 
@@ -1936,12 +1970,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 	free(data);
 
-	bgfx::VertexDecl PosNormalTexcoordDecl;
-	PosNormalTexcoordDecl.begin()
-		.add(bgfx::Attrib::Position,  3, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Normal,    4, bgfx::AttribType::Uint8, true, true)
-		.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-		.end();
+	PosNormalTexcoordVertex::init();
 
 	s_uniforms.init();
 	s_uniforms.submitConstUniforms();
@@ -2045,15 +2074,15 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 	cubeModel.m_program = programTextureLightning;
 	cubeModel.m_texture = figureTex;
 
-	hplaneFieldModel.load(s_hplaneVertices, s_numHPlaneVertices, PosNormalTexcoordDecl, s_planeIndices, s_numPlaneIndices);
+	hplaneFieldModel.load(s_hplaneVertices, BX_COUNTOF(s_hplaneVertices), PosNormalTexcoordVertex::ms_decl, s_planeIndices, BX_COUNTOF(s_planeIndices) );
 	hplaneFieldModel.m_program = programTextureLightning;
 	hplaneFieldModel.m_texture = fieldstoneTex;
 
-	hplaneFigureModel.load(s_hplaneVertices, s_numHPlaneVertices, PosNormalTexcoordDecl, s_planeIndices, s_numPlaneIndices);
+	hplaneFigureModel.load(s_hplaneVertices, BX_COUNTOF(s_hplaneVertices), PosNormalTexcoordVertex::ms_decl, s_planeIndices, BX_COUNTOF(s_planeIndices) );
 	hplaneFigureModel.m_program = programTextureLightning;
 	hplaneFigureModel.m_texture = figureTex;
 
-	vplaneModel.load(s_vplaneVertices, s_numVPlaneVertices, PosNormalTexcoordDecl, s_planeIndices, s_numPlaneIndices);
+	vplaneModel.load(s_vplaneVertices, BX_COUNTOF(s_vplaneVertices), PosNormalTexcoordVertex::ms_decl, s_planeIndices, BX_COUNTOF(s_planeIndices) );
 	vplaneModel.m_program = programColorTexture;
 	vplaneModel.m_texture = flareTex;
 
@@ -2195,7 +2224,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 			currentScene = Scene1;
 		}
 
-		imguiSlider("Lights", &settings_numLights, 1.0f, float(MAX_LIGHTS_COUNT), 1.0f);
+		imguiSlider("Lights", settings_numLights, 1.0f, float(MAX_LIGHTS_COUNT), 1.0f);
 
 		if (imguiCheck("Update lights", settings_updateLights) )
 		{
@@ -2261,7 +2290,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 		if (Scene1 == currentScene)
 		{
-			imguiSlider("Instance count", &settings_instanceCount, 1.0f, float(MAX_INSTANCE_COUNT), 1.0f);
+			imguiSlider("Instance count", settings_instanceCount, 1.0f, float(MAX_INSTANCE_COUNT), 1.0f);
 		}
 
 		imguiLabel("CPU Time: %7.1f [ms]", double(profTime)*toMs);
@@ -2431,7 +2460,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 		// Scene 0 - shadow casters - Columns.
 		const float dist = 16.0f;
-		const float columnPositions[4][3] =
+		const float columnPositions[][3] =
 		{
 			{  dist, 3.3f,  dist },
 			{ -dist, 3.3f,  dist },
@@ -2862,8 +2891,8 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		}
 
 		// Setup view rect and transform for all used views.
-		bgfx::setViewRectMask(s_viewMask, 0, 0, viewState.m_width, viewState.m_height);
-		bgfx::setViewTransformMask(s_viewMask, viewState.m_view, viewState.m_proj);
+		setViewRectMask(s_viewMask, 0, 0, viewState.m_width, viewState.m_height);
+		setViewTransformMask(s_viewMask, viewState.m_view, viewState.m_proj);
 		s_viewMask = 0;
 
 		// Advance to next frame. Rendering thread will be kicked to
@@ -2874,7 +2903,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 		s_svAllocator.swap();
 
 		// Reset clear values.
-		bgfx::setViewClearMask(UINT32_MAX
+		setViewClearMask(UINT32_MAX
 			, BGFX_CLEAR_NONE
 			, clearValues.m_clearRgba
 			, clearValues.m_clearDepth

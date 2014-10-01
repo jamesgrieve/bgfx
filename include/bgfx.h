@@ -49,6 +49,18 @@ namespace bgfx
 		};
 	};
 
+	struct Access
+	{
+		enum Enum
+		{
+			Read,
+			Write,
+			ReadWrite,
+
+			Count
+		};
+	};
+
 	struct Attrib
 	{
 		enum Enum // corresponds to vertex shader attribute:
@@ -56,6 +68,7 @@ namespace bgfx
 			Position,  // a_position
 			Normal,    // a_normal
 			Tangent,   // a_tangent
+			Bitangent, // a_bitangent
 			Color0,    // a_color0
 			Color1,    // a_color1
 			Indices,   // a_indices
@@ -88,7 +101,7 @@ namespace bgfx
 
 	struct TextureFormat
 	{
-		// Availability depends on BGFX_CAPS_TEXTURE_FORMAT_*.
+		// Availability depends on Caps (see: formats).
 		enum Enum
 		{
 			BC1,    // DXT1
@@ -96,6 +109,8 @@ namespace bgfx
 			BC3,    // DXT5
 			BC4,    // LATC1/ATI1
 			BC5,    // LATC2/ATI2
+			BC6H,   // BC6H
+			BC7,    // BC7
 			ETC1,   // ETC1 RGB8
 			ETC2,   // ETC2 RGB8
 			ETC2A,  // ETC2 RGBA8
@@ -109,19 +124,27 @@ namespace bgfx
 
 			Unknown, // compressed formats above
 
+			R1,
 			R8,
 			R16,
 			R16F,
+			R32,
 			R32F,
+			RG8,
+			RG16,
+			RG16F,
+			RG32,
 			RG32F,
 			BGRA8,
 			RGBA16,
 			RGBA16F,
+			RGBA32,
 			RGBA32F,
 			R5G6B5,
 			RGBA4,
 			RGB5A1,
 			RGB10A2,
+			R11G11B10F,
 
 			UnknownDepth, // depth formats below
 
@@ -239,6 +262,12 @@ namespace bgfx
 		uint16_t maxTextureSize;   ///< Maximum texture size.
 		uint16_t maxDrawCalls;     ///< Maximum draw calls.
 		uint8_t  maxFBAttachments; ///< Maximum frame buffer attachments.
+
+		/// Supported texture formats.
+		///   0 - not supported
+		///   1 - supported
+		///   2 - emulated
+		uint8_t formats[TextureFormat::Count];
 	};
 
 	struct TransientIndexBuffer
@@ -283,6 +312,8 @@ namespace bgfx
 	/// Vertex declaration.
 	struct VertexDecl
 	{
+		VertexDecl();
+
 		/// Start VertexDecl.
 		VertexDecl& begin(RendererType::Enum _renderer = RendererType::Null);
 
@@ -784,6 +815,18 @@ namespace bgfx
 	///
 	FrameBufferHandle createFrameBuffer(uint8_t _num, TextureHandle* _handles, bool _destroyTextures = false);
 
+	/// Create frame buffer for multiple window rendering.
+	///
+	/// @param _nwh OS' target native window handle.
+	/// @param _width Window back buffer width.
+	/// @param _height Window back buffer height.
+	/// @param _depthFormat Window back buffer depth format.
+	///
+	/// NOTE:
+	///   Frame buffer cannnot be used for sampling.
+	///
+	FrameBufferHandle createFrameBuffer(void* _nwh, uint16_t _width, uint16_t _height, TextureFormat::Enum _depthFormat = TextureFormat::UnknownDepth);
+
 	/// Destroy frame buffer.
 	void destroyFrameBuffer(FrameBufferHandle _handle);
 
@@ -827,6 +870,27 @@ namespace bgfx
 	/// Destroy shader uniform parameter.
 	void destroyUniform(UniformHandle _handle);
 
+	/// Set clear color palette value.
+	///
+	/// @param _index Index into palette.
+	/// @param _rgba Packed 32-bit RGBA value.
+	///
+	void setClearColor(uint8_t _index, uint32_t _rgba);
+
+	/// Set clear color palette value.
+	///
+	/// @param _index Index into palette.
+	/// @param _r, _g, _b, _a RGBA floating point values.
+	///
+	void setClearColor(uint8_t _index, float _r, float _g, float _b, float _a);
+
+	/// Set clear color palette value.
+	///
+	/// @param _index Index into palette.
+	/// @param _rgba RGBA floating point value.
+	///
+	void setClearColor(uint8_t _index, const float _rgba[4]);
+
 	/// Set view name.
 	///
 	/// @param _id View id.
@@ -847,16 +911,6 @@ namespace bgfx
 	///
 	void setViewRect(uint8_t _id, uint16_t _x, uint16_t _y, uint16_t _width, uint16_t _height);
 
-	/// Set view rectangle for multiple views.
-	///
-	/// @param _viewMask Bit mask representing affected views.
-	/// @param _x Position x from the left corner of the window.
-	/// @param _y Position y from the top corner of the window.
-	/// @param _width Width of view port region.
-	/// @param _height Height of view port region.
-	///
-	void setViewRectMask(uint32_t _viewMask, uint16_t _x, uint16_t _y, uint16_t _width, uint16_t _height);
-
 	/// Set view scissor. Draw primitive outside view will be clipped. When
 	/// _x, _y, _width and _height are set to 0, scissor will be disabled.
 	///
@@ -866,18 +920,6 @@ namespace bgfx
 	/// @param _height Height of scissor region.
 	///
 	void setViewScissor(uint8_t _id, uint16_t _x = 0, uint16_t _y = 0, uint16_t _width = 0, uint16_t _height = 0);
-
-	/// Set view scissor for multiple views. When _x, _y, _width and _height
-	/// are set to 0, scissor will be disabled.
-	///
-	/// @param _id View id.
-	/// @param _viewMask Bit mask representing affected views.
-	/// @param _x Position x from the left corner of the window.
-	/// @param _y Position y from the top corner of the window.
-	/// @param _width Width of scissor region.
-	/// @param _height Height of scissor region.
-	///
-	void setViewScissorMask(uint32_t _viewMask, uint16_t _x = 0, uint16_t _y = 0, uint16_t _width = 0, uint16_t _height = 0);
 
 	/// Set view clear flags.
 	///
@@ -890,23 +932,21 @@ namespace bgfx
 	///
 	void setViewClear(uint8_t _id, uint8_t _flags, uint32_t _rgba = 0x000000ff, float _depth = 1.0f, uint8_t _stencil = 0);
 
-	/// Set clear color for a specific target.
+	/// Set view clear flags with different clear color for each
+	/// frame buffer texture. Must use setClearColor to setup clear color
+	/// palette.
 	///
 	/// @param _id View id.
-	/// @param _target Index of target to set clear color
-	/// @param _rgba Color clear value.
+	/// @param _flags Clear flags. Use BGFX_CLEAR_NONE to remove any clear
+	///   operation. See: BGFX_CLEAR_*.
+	/// @param _depth Depth clear value.
+	/// @param _stencil Stencil clear value.
 	///
-	void setViewTargetClear(uint8_t _id, uint8_t _target, float* _rgba);
-
-	/// Set view clear flags for multiple views.
-	void setViewClearMask(uint32_t _viewMask, uint8_t _flags, uint32_t _rgba = 0x000000ff, float _depth = 1.0f, uint8_t _stencil = 0);
+	void setViewClear(uint8_t _id, uint8_t _flags, float _depth, uint8_t _stencil, uint8_t _0 = UINT8_MAX, uint8_t _1 = UINT8_MAX, uint8_t _2 = UINT8_MAX, uint8_t _3 = UINT8_MAX, uint8_t _4 = UINT8_MAX, uint8_t _5 = UINT8_MAX, uint8_t _6 = UINT8_MAX, uint8_t _7 = UINT8_MAX);
 
 	/// Set view into sequential mode. Draw calls will be sorted in the same
 	/// order in which submit calls were called.
 	void setViewSeq(uint8_t _id, bool _enabled);
-
-	/// Set multiple views into sequential mode.
-	void setViewSeqMask(uint32_t _viewMask, bool _enabled);
 
 	/// Set view frame buffer.
 	///
@@ -915,23 +955,14 @@ namespace bgfx
 	///   frame buffer handle will draw primitives from this view into
 	///   default back buffer.
 	///
+	/// NOTE:
+	///   Not persistent after bgfx::reset call.
+	///
 	void setViewFrameBuffer(uint8_t _id, FrameBufferHandle _handle);
-
-	/// Set view frame buffer for multiple views.
-	///
-	/// @param _viewMask View mask.
-	/// @param _handle Frame buffer handle. Passing BGFX_INVALID_HANDLE as
-	///   frame buffer handle will draw primitives from this view into
-	///   default back buffer.
-	///
-	void setViewFrameBufferMask(uint32_t _viewMask, FrameBufferHandle _handle);
 
 	/// Set view view and projection matrices, all draw primitives in this
 	/// view will use these matrices.
 	void setViewTransform(uint8_t _id, const void* _view, const void* _proj);
-
-	/// Set view view and projection matrices for multiple views.
-	void setViewTransformMask(uint32_t _viewMask, const void* _view, const void* _proj);
 
 	/// Sets debug marker.
 	void setMarker(const char* _marker);
@@ -949,7 +980,7 @@ namespace bgfx
 	///   BGFX_STATE_CULL_* - Backface culling mode.
 	///   BGFX_STATE_RGB_WRITE - Enable RGB write.
 	///   BGFX_STATE_MSAA - Enable MSAA.
-	///   BGFX_STATE_PT_[LINES/POINTS] - Primitive type.
+	///   BGFX_STATE_PT_[TRISTRIP/LINES/POINTS] - Primitive type.
 	///
 	/// @param _rgba Sets blend factor used by BGFX_STATE_BLEND_FACTOR and
 	///   BGFX_STATE_BLEND_INV_FACTOR blend modes.
@@ -1085,15 +1116,16 @@ namespace bgfx
 	///
 	uint32_t submit(uint8_t _id, int32_t _depth = 0);
 
-	/// Submit primitive for rendering into multiple views.
 	///
-	/// @param _viewMask Mask to which views to submit draw primitive calls.
-	/// @param _depth Depth for sorting.
-	/// @returns Number of draw calls.
-	///
-	uint32_t submitMask(uint32_t _viewMask, int32_t _depth = 0);
+	void setImage(uint8_t _stage, UniformHandle _sampler, TextureHandle _handle, uint8_t _mip, TextureFormat::Enum _format, Access::Enum _access);
 
-	/// Discard all previously set state for draw call.
+	///
+	void setImage(uint8_t _stage, UniformHandle _sampler, FrameBufferHandle _handle, uint8_t _attachment, TextureFormat::Enum _format, Access::Enum _access);
+
+	/// Dispatch compute.
+	void dispatch(uint8_t _id, ProgramHandle _handle, uint16_t _numX = 1, uint16_t _numY = 1, uint16_t _numZ = 1);
+
+	/// Discard all previously set state for draw or compute call.
 	void discard();
 
 	/// Request screen shot.
