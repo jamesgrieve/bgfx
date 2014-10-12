@@ -34,7 +34,9 @@ file( GLOB SHADERC_FILES ${GLSL_OPT_DIR}/src/mesa/main/*.c
                          ${FCPP_DIR}/cpp?.c
                          ${FCPP_DIR}/*.h
                          ${SHADERC_DIR}/*.cpp
-                         ${SHADERC_DIR}/*.h  )
+                         ${SHADERC_DIR}/*.h
+                         ${SHADERC_DIR}/../../src/vertexdecl.h
+                         ${SHADERC_DIR}/../../src/vertexdecl.cpp  )
 
 list( REMOVE_ITEM SHADERC_FILES ${GLSL_OPT_DIR}/src/glsl/main.cpp )
 
