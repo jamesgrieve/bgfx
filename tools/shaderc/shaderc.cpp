@@ -1925,7 +1925,7 @@ int main(int _argc, const char* _argv[])
 				eol = bx::streol(parse);
 			}
 
-			if (NULL != eol)
+			if (NULL != eol && 0x0 != *eol)
 			{
 				const char* precision = NULL;
 				const char* interpolation = NULL;
