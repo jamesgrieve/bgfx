@@ -53,7 +53,9 @@ if(MSVC)
 
 #    link_directories( "$ENV{DXSDK_DIR}/lib/x86" )
     link_directories( "$ENV{DXSDK_DIR}/lib/x64" )
-
+    
+    set( CMAKE_EXE_LINKER_FLAGS "" )
+    
     set( SHADERC_LIBS ${SHADERC_LIBS} d3dx9 d3dcompiler dxguid )
 endif()
 
