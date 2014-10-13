@@ -37,6 +37,8 @@ if(MSVC)
 	include_directories( ${BX_DIR}/include/compat/msvc )
 	include_directories( "$ENV{DXSDK_DIR}/include" )
 
+  	set( CMAKE_EXE_LINKER_FLAGS "" )
+  	
 endif()
 
 add_executable( texturec ${TEXTUREC_FILES} )
