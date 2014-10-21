@@ -111,6 +111,7 @@ static const uint16_t s_planeIndices[] =
 };
 
 static const char* s_shaderPath = NULL;
+static bool s_oglNdc = false;
 static float s_texelHalf = 0.0f;
 
 static uint32_t s_viewMask = 0;
@@ -118,11 +119,6 @@ static uint32_t s_viewMask = 0;
 static bgfx::UniformHandle u_texColor;
 static bgfx::UniformHandle u_texStencil;
 static bgfx::FrameBufferHandle s_stencilFb;
-
-inline uint32_t uint32_max(uint32_t _a, uint32_t _b)
-{
-	return _a > _b ? _a : _b;
-}
 
 static void shaderFilePath(char* _out, const char* _name)
 {
@@ -219,6 +215,11 @@ void setViewRectMask(uint32_t _viewMask, uint16_t _x, uint16_t _y, uint16_t _wid
 
 		bgfx::setViewRect( (uint8_t)view, _x, _y, _width, _height);
 	}
+}
+
+inline void mtxProj(float* _result, float _fovy, float _aspect, float _near, float _far)
+{
+	bx::mtxProj(_result, _fovy, _aspect, _near, _far, s_oglNdc);
 }
 
 void mtxBillboard(float* __restrict _result
@@ -1635,7 +1636,7 @@ void shadowVolumeCreate(ShadowVolume& _shadowVolume
 			const float4_t onei = float4_isplat(1);
 			const float4_t tmp4 = float4_isub(tmp3, onei);
 
-			BX_ALIGN_STRUCT_16(int32_t res[4]);
+			BX_ALIGN_DECL_16(int32_t res[4]);
 			float4_st(&res, tmp4);
 
 			for (uint16_t jj = 0; jj < 2; ++jj)
@@ -1951,10 +1952,12 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 
 	case bgfx::RendererType::OpenGL:
 		s_shaderPath = "shaders/glsl/";
+		s_oglNdc = true;
 		break;
 
 	case bgfx::RendererType::OpenGLES:
 		s_shaderPath = "shaders/gles/";
+		s_oglNdc = true;
 		break;
 	}
 
@@ -2163,7 +2166,7 @@ int _main_(int /*_argc*/, char** /*_argv*/)
 	const float aspect = float(viewState.m_width)/float(viewState.m_height);
 	const float nearPlane = 1.0f;
 	const float farPlane = 1000.0f;
-	bx::mtxProj(viewState.m_proj, fov, aspect, nearPlane, farPlane);
+	mtxProj(viewState.m_proj, fov, aspect, nearPlane, farPlane);
 
 	float initialPos[3] = { 3.0f, 20.0f, -58.0f };
 	cameraCreate();

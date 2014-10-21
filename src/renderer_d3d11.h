@@ -13,16 +13,13 @@
 #	define BGFX_CONFIG_DEBUG_PIX 0
 #endif // !USE_D3D11_DYNAMIC_LIB
 
+BX_PRAGMA_DIAGNOSTIC_PUSH();
+BX_PRAGMA_DIAGNOSTIC_IGNORED_CLANG("-Wunknown-pragmas" );
+BX_PRAGMA_DIAGNOSTIC_IGNORED_GCC("-Wpragmas");
+BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4005) // warning C4005: '' : macro redefinition
 #define D3D11_NO_HELPERS
-#if BX_COMPILER_MSVC
-#	pragma warning(push)
-//  winerror.h and dxgitypes.h both define DXGI_ERRORs.
-#	pragma warning(disable:4005) // warning C4005: '' : macro redefinition
-#	include <d3d11.h>
-#	pragma warning(pop)
-#else
-#	include <d3d11.h>
-#endif // BX_COMPILER_MSVC
+#include <d3d11.h>
+BX_PRAGMA_DIAGNOSTIC_POP()
 
 #include "renderer_d3d.h"
 
@@ -31,55 +28,6 @@
 
 namespace bgfx
 {
-	typedef HRESULT (WINAPI * PFN_CREATEDXGIFACTORY)(REFIID _riid, void** _factory);
-
-	template <typename Ty>
-	class StateCacheT
-	{
-	public:
-		void add(uint64_t _id, Ty* _item)
-		{
-			invalidate(_id);
-			m_hashMap.insert(stl::make_pair(_id, _item) );
-		}
-
-		Ty* find(uint64_t _id)
-		{
-			typename HashMap::iterator it = m_hashMap.find(_id);
-			if (it != m_hashMap.end() )
-			{
-				return it->second;
-			}
-
-			return NULL;
-		}
-
-		void invalidate(uint64_t _id)
-		{
-			typename HashMap::iterator it = m_hashMap.find(_id);
-			if (it != m_hashMap.end() )
-			{
-				DX_RELEASE_WARNONLY(it->second, 0);
-				m_hashMap.erase(it);
-			}
-		}
-
-		void invalidate()
-		{
-			for (typename HashMap::iterator it = m_hashMap.begin(), itEnd = m_hashMap.end(); it != itEnd; ++it)
-			{
-				DX_CHECK_REFCOUNT(it->second, 1);
-				it->second->Release();
-			}
-
-			m_hashMap.clear();
-		}
-
-	private:
-		typedef stl::unordered_map<uint64_t, Ty*> HashMap;
-		HashMap m_hashMap;
-	};
-
 	struct IndexBufferD3D11
 	{
 		IndexBufferD3D11()

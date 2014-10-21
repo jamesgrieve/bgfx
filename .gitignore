@@ -1,7 +1,6 @@
-.build/
-.debug/
-.svn/
-build/
+.git
+.build
+.debug
+.svn
 tags
 .DS_Store
-*.sc.bin

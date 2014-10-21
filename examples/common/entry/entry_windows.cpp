@@ -13,25 +13,24 @@
 #include <bx/thread.h>
 #include <bx/mutex.h>
 #include <bx/handlealloc.h>
-
-#include <windowsx.h>
-
 #include <tinystl/allocator.h>
 #include <tinystl/string.h>
 
-enum
-{
-	WM_USER_WINDOW_CREATE = WM_USER,
-	WM_USER_WINDOW_DESTROY,
-	WM_USER_WINDOW_SET_TITLE,
-	WM_USER_WINDOW_SET_POS,
-	WM_USER_WINDOW_SET_SIZE,
-	WM_USER_WINDOW_TOGGLE_FRAME,
-	WM_USER_WINDOW_MOUSE_LOCK,
-};
+#include <windowsx.h>
 
 namespace entry
 {
+	enum
+	{
+		WM_USER_WINDOW_CREATE = WM_USER,
+		WM_USER_WINDOW_DESTROY,
+		WM_USER_WINDOW_SET_TITLE,
+		WM_USER_WINDOW_SET_POS,
+		WM_USER_WINDOW_SET_SIZE,
+		WM_USER_WINDOW_TOGGLE_FRAME,
+		WM_USER_WINDOW_MOUSE_LOCK,
+	};
+
 	struct TranslateKeyModifiers
 	{
 		int m_vk;
@@ -143,42 +142,42 @@ namespace entry
 			s_translateKey[VK_NUMPAD7]   = Key::NumPad7;
 			s_translateKey[VK_NUMPAD8]   = Key::NumPad8;
 			s_translateKey[VK_NUMPAD9]   = Key::NumPad9;
-			s_translateKey['0']          = Key::Key0;
-			s_translateKey['1']          = Key::Key1;
-			s_translateKey['2']          = Key::Key2;
-			s_translateKey['3']          = Key::Key3;
-			s_translateKey['4']          = Key::Key4;
-			s_translateKey['5']          = Key::Key5;
-			s_translateKey['6']          = Key::Key6;
-			s_translateKey['7']          = Key::Key7;
-			s_translateKey['8']          = Key::Key8;
-			s_translateKey['9']          = Key::Key9;
-			s_translateKey['A']          = Key::KeyA;
-			s_translateKey['B']          = Key::KeyB;
-			s_translateKey['C']          = Key::KeyC;
-			s_translateKey['D']          = Key::KeyD;
-			s_translateKey['E']          = Key::KeyE;
-			s_translateKey['F']          = Key::KeyF;
-			s_translateKey['G']          = Key::KeyG;
-			s_translateKey['H']          = Key::KeyH;
-			s_translateKey['I']          = Key::KeyI;
-			s_translateKey['J']          = Key::KeyJ;
-			s_translateKey['K']          = Key::KeyK;
-			s_translateKey['L']          = Key::KeyL;
-			s_translateKey['M']          = Key::KeyM;
-			s_translateKey['N']          = Key::KeyN;
-			s_translateKey['O']          = Key::KeyO;
-			s_translateKey['P']          = Key::KeyP;
-			s_translateKey['Q']          = Key::KeyQ;
-			s_translateKey['R']          = Key::KeyR;
-			s_translateKey['S']          = Key::KeyS;
-			s_translateKey['T']          = Key::KeyT;
-			s_translateKey['U']          = Key::KeyU;
-			s_translateKey['V']          = Key::KeyV;
-			s_translateKey['W']          = Key::KeyW;
-			s_translateKey['X']          = Key::KeyX;
-			s_translateKey['Y']          = Key::KeyY;
-			s_translateKey['Z']          = Key::KeyZ;
+			s_translateKey[uint8_t('0')] = Key::Key0;
+			s_translateKey[uint8_t('1')] = Key::Key1;
+			s_translateKey[uint8_t('2')] = Key::Key2;
+			s_translateKey[uint8_t('3')] = Key::Key3;
+			s_translateKey[uint8_t('4')] = Key::Key4;
+			s_translateKey[uint8_t('5')] = Key::Key5;
+			s_translateKey[uint8_t('6')] = Key::Key6;
+			s_translateKey[uint8_t('7')] = Key::Key7;
+			s_translateKey[uint8_t('8')] = Key::Key8;
+			s_translateKey[uint8_t('9')] = Key::Key9;
+			s_translateKey[uint8_t('A')] = Key::KeyA;
+			s_translateKey[uint8_t('B')] = Key::KeyB;
+			s_translateKey[uint8_t('C')] = Key::KeyC;
+			s_translateKey[uint8_t('D')] = Key::KeyD;
+			s_translateKey[uint8_t('E')] = Key::KeyE;
+			s_translateKey[uint8_t('F')] = Key::KeyF;
+			s_translateKey[uint8_t('G')] = Key::KeyG;
+			s_translateKey[uint8_t('H')] = Key::KeyH;
+			s_translateKey[uint8_t('I')] = Key::KeyI;
+			s_translateKey[uint8_t('J')] = Key::KeyJ;
+			s_translateKey[uint8_t('K')] = Key::KeyK;
+			s_translateKey[uint8_t('L')] = Key::KeyL;
+			s_translateKey[uint8_t('M')] = Key::KeyM;
+			s_translateKey[uint8_t('N')] = Key::KeyN;
+			s_translateKey[uint8_t('O')] = Key::KeyO;
+			s_translateKey[uint8_t('P')] = Key::KeyP;
+			s_translateKey[uint8_t('Q')] = Key::KeyQ;
+			s_translateKey[uint8_t('R')] = Key::KeyR;
+			s_translateKey[uint8_t('S')] = Key::KeyS;
+			s_translateKey[uint8_t('T')] = Key::KeyT;
+			s_translateKey[uint8_t('U')] = Key::KeyU;
+			s_translateKey[uint8_t('V')] = Key::KeyV;
+			s_translateKey[uint8_t('W')] = Key::KeyW;
+			s_translateKey[uint8_t('X')] = Key::KeyX;
+			s_translateKey[uint8_t('Y')] = Key::KeyY;
+			s_translateKey[uint8_t('Z')] = Key::KeyZ;
 		}
 
 		int32_t run(int _argc, char** _argv)
@@ -213,7 +212,10 @@ namespace entry
 				, 0
 				);
 
-			m_flags[0] = ENTRY_WINDOW_FLAG_ASPECT_RATIO;
+			m_flags[0] = 0
+				| ENTRY_WINDOW_FLAG_ASPECT_RATIO
+				| ENTRY_WINDOW_FLAG_FRAME
+				;
 
 			bgfx::winSetHwnd(m_hwnd[0]);
 
@@ -294,6 +296,7 @@ namespace entry
 						WindowHandle handle = { (uint16_t)_wparam };
 						PostMessageA(m_hwnd[_wparam], WM_CLOSE, 0, 0);
 						m_eventQueue.postWindowEvent(handle);
+						DestroyWindow(m_hwnd[_wparam]);
 						m_hwnd[_wparam] = 0;
 					}
 					break;
