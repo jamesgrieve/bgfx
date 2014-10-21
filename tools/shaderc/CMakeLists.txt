@@ -19,18 +19,22 @@ endforeach()
 
 include_directories( ${FCPP_DIR} )
 include_directories( ${GLSL_OPT_DIR}/include )
+include_directories( ${GLSL_OPT_DIR}/src )
 include_directories( ${GLSL_OPT_DIR}/src/glsl )
 include_directories( ${GLSL_OPT_DIR}/src/mapi )
 include_directories( ${GLSL_OPT_DIR}/src/mesa )
 
 file( GLOB SHADERC_FILES ${GLSL_OPT_DIR}/src/mesa/main/*.c
                          ${GLSL_OPT_DIR}/src/mesa/program/*.c
+                         ${GLSL_OPT_DIR}/src/mesa/*.c
                          ${GLSL_OPT_DIR}/src/mesa/*.h
                          ${GLSL_OPT_DIR}/src/glsl/*.cpp
                          ${GLSL_OPT_DIR}/src/glsl/*.c
                          ${GLSL_OPT_DIR}/src/glsl/*.h
                          ${GLSL_OPT_DIR}/src/glsl/glcpp/*.c
                          ${GLSL_OPT_DIR}/src/glsl/glcpp/*.h
+                         ${GLSL_OPT_DIR}/src/util/*.c
+                         ${GLSL_OPT_DIR}/src/util/*.h
                          ${FCPP_DIR}/cpp?.c
                          ${FCPP_DIR}/*.h
                          ${SHADERC_DIR}/*.cpp
